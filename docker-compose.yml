@@ -1,0 +1,30 @@
+version: '3'
+services:
+  resizer:
+    build: .
+    volumes:
+      - ./resize-nginx-default.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./log/resizer/nginx:/var/log/nginx:rw
+    depends_on:
+      - downloader-cache
+  resizer-cache:
+    image: jonbaldie/varnish
+    volumes:
+      - ./resizer-cache-default.vcl:/etc/varnish/default.vcl
+    depends_on:
+      - resizer
+    ports:
+      - 80:80
+  downloader:
+    build: .
+    volumes:
+      - ./download-nginx-default.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./log/downloader/nginx:/var/log/nginx:rw
+    ports:
+      - 81:80
+  downloader-cache:
+    image: jonbaldie/varnish
+    volumes:
+      - ./downloader-cache-default.vcl:/etc/varnish/default.vcl
+    depends_on:
+      - downloader
